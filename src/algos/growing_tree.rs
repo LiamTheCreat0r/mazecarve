@@ -68,11 +68,11 @@ impl Algo for GrowingTree {
         let mut dirs = [0usize; 4];
         let mut n = 0;
         for d in 0..4 {
-            if let Some((nr, nc)) = m.nb(r, c, d) {
-                if !m.vis[m.idx(nr, nc)] {
-                    dirs[n] = d;
-                    n += 1;
-                }
+            if let Some((nr, nc)) = m.nb(r, c, d)
+                && !m.vis[m.idx(nr, nc)]
+            {
+                dirs[n] = d;
+                n += 1;
             }
         }
 
