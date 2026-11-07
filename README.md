@@ -1,9 +1,9 @@
-# cmaze
+# mazecarve
 
-A terminal maze generator in C + ncurses, meant to be watched rather than played.
-Carve a maze one cell at a time, in color, at whatever speed you like — or print
-one to a file. Walls default to a seeded ASCII texture, and the same maze can be
-drawn top-down, isometric, or oblique:
+A terminal maze generator in Rust + [ratatui](https://ratatui.rs), meant to be
+watched rather than played. Carve a maze one cell at a time, in color, at
+whatever speed you like — or print one to a file. Walls default to a seeded
+ASCII texture, and the same maze can be drawn top-down, isometric, or oblique:
 
 ```
                      __
@@ -49,24 +49,22 @@ drawn top-down, isometric, or oblique:
 - **Messages** — a framed message below the maze, like cbonsai
 - **Deterministic seeds** — the same seed always draws the same maze
 - **Save / load** — persist a seed plus its settings to a file
-- **Resize-safe** — handles `SIGWINCH`; the maze re-lays out to the new size
-- **Wide characters** — real UTF-8 via wide ncurses (`mvadd_wch`)
+- **Resize-safe** — the maze re-lays out (or is rebuilt) when the terminal changes size
+- **Clean exits** — the terminal is restored on `q`, Ctrl-C, `SIGTERM` or a panic
 
 ## Building
 
-Requires a C99 compiler and ncurses. No other dependencies.
+Requires a recent stable Rust toolchain (edition 2024).
 
 ```sh
-make            # builds ./cmaze
-make install    # installs binary + man page to $(PREFIX), default /usr/local
-make uninstall
-make clean
+cargo install --path .        # installs the mazecarve binary into ~/.cargo/bin
+cargo build --release         # or just build ./target/release/mazecarve
 ```
 
-On macOS the Xcode command line tools provide ncurses. On Debian/Ubuntu:
+The man page is `mazecarve.6`; to install it:
 
 ```sh
-sudo apt install libncurses-dev
+install -m 644 mazecarve.6 /usr/local/share/man/man6/
 ```
 
 ## Usage
@@ -76,7 +74,7 @@ modes
   -l, --live              animate the maze being carved
   -i, --infinite          keep generating new mazes forever
   -S, --screensaver       live + infinite, quits on any keypress
-  -p, --print             print the finished maze and exit (no curses)
+  -p, --print             print the finished maze and exit (no TUI)
 
 timing
   -t, --time=TIME         seconds between animation steps (default 0.01)
@@ -126,14 +124,14 @@ The terminal is restored cleanly on exit, whatever way you quit.
 ### Examples
 
 ```sh
-cmaze -l                          # watch a maze carve itself
-cmaze -l -T wilson --theme=ocean  # Wilson's algorithm, ocean colors
-cmaze -l -S                       # screensaver
-cmaze -l -i -w 2                  # new maze every 2 seconds, forever
-cmaze -p --size=40x20 > maze.txt  # print a maze to a file
-cmaze -l -s 42 -b 40 -e -m "hello" # seeded, braided, with endpoints + message
-cmaze -V iso -l -H 3              # isometric view with taller walls
-cmaze -p -V iso -R 1 -s 42        # same maze as above, rotated, printed
+mazecarve -l                          # watch a maze carve itself
+mazecarve -l -T wilson --theme=ocean  # Wilson's algorithm, ocean colors
+mazecarve -l -S                       # screensaver
+mazecarve -l -i -w 2                  # new maze every 2 seconds, forever
+mazecarve -p --size=40x20 > maze.txt  # print a maze to a file
+mazecarve -l -s 42 -b 40 -e -m "hello" # seeded, braided, with endpoints + message
+mazecarve -V iso -l -H 3              # isometric view with taller walls
+mazecarve -p -V iso -R 1 -s 42        # same maze as above, rotated, printed
 ```
 
 ## Maze types
@@ -163,8 +161,8 @@ cmaze -p -V iso -R 1 -s 42        # same maze as above, rotated, printed
 | `block` | solid `█` walls |
 
 ```sh
-cmaze -p --style=unicode    # the classic box-drawing maze
-cmaze -l --style=block      # chunky block walls
+mazecarve -p --style=unicode    # the classic box-drawing maze
+mazecarve -l --style=block      # chunky block walls
 ```
 
 The texture is deterministic: the same `--seed` always produces the same
@@ -188,14 +186,14 @@ Mazes are auto-sized to fit the terminal and centered; live carving looks
 like corridors being dug out of a solid block.
 
 ```sh
-cmaze -V iso -l              # watch it carve in 3D
-cmaze -V iso -H 3 -R 1       # taller walls, rotated 90 degrees
-cmaze -V oblique -l          # simpler oblique blocks
-cmaze -p -V iso > maze.txt   # print the isometric maze (plain ASCII)
+mazecarve -V iso -l              # watch it carve in 3D
+mazecarve -V iso -H 3 -R 1       # taller walls, rotated 90 degrees
+mazecarve -V oblique -l          # simpler oblique blocks
+mazecarve -p -V iso > maze.txt   # print the isometric maze (plain ASCII)
 ```
 
 `--iso-style` chooses the glyph set: `ascii` (`/ \ _ |`), `box` (box drawing
-and diagonals) or `block` (`█▓▒░`). The curses view defaults to `box` on a
+and diagonals) or `block` (`█▓▒░`). The live view defaults to `box` on a
 UTF-8 terminal, printed output always defaults to `ascii`. Wall faces are
 shaded via the theme's wall colour (top lightest, left medium, right
 darkest); `--no-shade` turns that off, and 8/16-color terminals fall back
@@ -206,20 +204,23 @@ to denser glyphs instead of colors.
 A theme sets the whole palette; `-c` overrides individual roles:
 
 ```sh
-cmaze -l -c "#ff0000,#00ff00,#ffffff"   # hex colors
-cmaze -l -c "196,46,231"                # xterm-256 indices
+mazecarve -l -c "#ff0000,#00ff00,#ffffff"   # hex colors
+mazecarve -l -c "196,46,231"                # xterm-256 indices
 ```
 
 Roles, in order: `wall,path,head,trail1,trail2,unvisited,endpoint`.
-`head` is the carving front, `trail`/`trail2` are the receding glow behind it.
-Colors are remapped to the nearest available on 8/16-color terminals.
+`head` is the carving front, `trail1`/`trail2` are the receding glow behind it.
+Colors are remapped to the nearest available on 8/16-color terminals. The
+color depth comes from `TERM` and `COLORTERM`, and `NO_COLOR` turns colors off.
 
 ## Save files
 
 `-f` writes the current seed and settings as `key=value` lines; `-L` reads them
-back:
+back (flags given on the command line still win). Files saved by the old C
+`cmaze` load unchanged:
 
 ```
+mazecarve 2.0.0 seed and settings
 seed=42
 type=backtracker
 size=40x20
@@ -234,21 +235,28 @@ rotate=1
 ## Project layout
 
 ```
-cmaze.h        shared types: Maze, Rng, Algo, Options, Render
-main.c         CLI parsing glue, curses setup, main loop, signals
-options.c      getopt_long, help/version, save/load file format
-grid.c         grid + wall bookkeeping, braiding, endpoints
-algo.c         algorithm registry
-canvas.c       off-screen character/colour buffer, curses + stdout output
-project.c      maze -> tile grid expansion, rotation math
-render.c       top-down canvas build, message box, print mode, layout
-render_iso.c   isometric + oblique renderers (projection, faces, shading)
-theme.c        color names, xterm-256 mapping, themes
-rng.c          splitmix64/xoshiro-style PRNG
-algos/         the 11 algorithms, one file each
+src/main.rs           entry point, print mode, generation driver
+src/tui.rs            live view: ratatui loop, input, resize, signals
+src/options.rs        getopt_long-style parser, help/version, save/load
+src/maze.rs           grid + wall bookkeeping, braiding, endpoints
+src/algos/            the 11 algorithms, one file each, plus the registry
+src/canvas.rs         off-screen character/role buffer
+src/tiles.rs          maze -> tile grid expansion, rotation math
+src/render/top.rs     top-down view: strokes, texture, blocks
+src/render/iso.rs     isometric + oblique renderers (projection, faces)
+src/render/mod.rs     shared render state, message box, printed output
+src/layout.rs         sizing and centring on the terminal
+src/theme.rs          color names, xterm-256 mapping, themes, styles
+src/rng.rs            splitmix64 PRNG, identical on every platform
 ```
+
+## History
+
+mazecarve started life as `cmaze`, written in C + ncurses. The Rust version
+is a step-for-step port: for the same seed and flags it prints byte-for-byte
+the same maze as `cmaze` 1.1.0 did.
 
 ## See also
 
-- `cmaze(6)` — the man page (`make install` installs it)
-- `cmaze-pitch.md` — the original design pitch
+- `mazecarve(6)` — the man page
+- `mazecarve-pitch.md` — the original design pitch

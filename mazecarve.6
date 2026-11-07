@@ -1,13 +1,13 @@
-.\" cmaze.6 - the cmaze man page
-.TH CMAZE 6 "cmaze 1.1.0" "Games"
+.\" mazecarve.6 - the mazecarve man page
+.TH MAZECARVE 6 "mazecarve 2.0.0" "Games"
 .SH NAME
-cmaze \- a terminal maze generator
+mazecarve \- a terminal maze generator
 .SH SYNOPSIS
-.B cmaze
+.B mazecarve
 .RI [ options ]
 .SH DESCRIPTION
-.B cmaze
-generates mazes in a terminal, using curses.  It is meant to be watched
+.B mazecarve
+generates mazes in a terminal.  It is meant to be watched
 rather than played: mazes can be carved live, one cell at a time, in
 color, or printed to standard output.  Nothing about solving or playing
 a maze is included.
@@ -26,7 +26,7 @@ Live + infinite; quits on any keypress.
 .TP
 .BR \-p ", " \-\-print
 Print the finished maze to standard output and exit, without starting
-curses.
+the full-screen view.
 .SH TIMING
 .TP
 .BR \-t ", " \-\-time= TIME
@@ -100,7 +100,7 @@ Do not draw floor tiles in the iso/oblique views, only walls.
 .TP
 .BI \-\-iso\-style= STYLE
 Glyph set for the iso/oblique views: ascii (/ \\ _ |), box (box drawing
-and diagonals) or block (solid blocks of different density).  The curses
+and diagonals) or block (solid blocks of different density).  The live
 view defaults to box on UTF-8 terminals; printed output always defaults
 to plain ascii.
 .SH TWEAKS
@@ -131,16 +131,23 @@ Print the help text and exit.
 and
 .B Ctrl-C
 quit; in screensaver mode any key quits.  The terminal is restored
-cleanly on exit.
+cleanly on exit, including on SIGTERM and SIGHUP.
 .SH EXAMPLES
 .PP
 .nf
-cmaze \-l                         # watch a maze carve itself
-cmaze \-l \-T wilson \-\-theme=ocean
-cmaze \-l \-S                      # screensaver
-cmaze \-p \-\-size=40x20 > maze.txt
-cmaze \-V iso \-l \-H 3             # isometric view, taller walls
-cmaze \-p \-V iso \-R 1 > maze.txt  # rotated isometric maze, printed
+mazecarve \-l                         # watch a maze carve itself
+mazecarve \-l \-T wilson \-\-theme=ocean
+mazecarve \-l \-S                      # screensaver
+mazecarve \-p \-\-size=40x20 > maze.txt
+mazecarve \-V iso \-l \-H 3             # isometric view, taller walls
+mazecarve \-p \-V iso \-R 1 > maze.txt  # rotated isometric maze, printed
 .fi
+.SH ENVIRONMENT
+.TP
+.B TERM, COLORTERM
+Used to work out how many colors the terminal can show.
+.TP
+.B NO_COLOR
+When set to a non-empty value, draw without colors.
 .SH SEE ALSO
-The cmaze README, shipped with the source.
+The mazecarve README, shipped with the source.

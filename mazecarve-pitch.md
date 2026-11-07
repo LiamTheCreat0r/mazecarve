@@ -1,4 +1,8 @@
-# cmaze: a terminal maze generator, in C + ncurses
+# mazecarve (née cmaze): the original pitch
+
+> This is the design pitch the project started from, when it was `cmaze`,
+> written in C + ncurses. mazecarve is the Rust + ratatui port of that
+> program; the concept, flags and maze types below still apply.
 
 ## One-liner
 **cmaze** is to mazes what **cbonsai** is to bonsai trees: a small, pretty, terminal-native generator that grows a maze on screen. Nobody plays it and nothing solves it. It's meant to be watched, screenshotted, or left running as a screensaver.
