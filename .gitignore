@@ -1,2 +1,4 @@
+/target
 *.o
 /cmaze
+.DS_Store

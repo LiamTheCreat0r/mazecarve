@@ -1,0 +1,16 @@
+[package]
+name = "mazecarve"
+version = "2.0.0"
+edition = "2024"
+description = "A terminal maze generator, meant to be watched rather than played"
+readme = "README.md"
+repository = "https://github.com/LiamTheCreat0r/mazecarve"
+keywords = ["maze", "terminal", "tui", "ratatui", "screensaver"]
+categories = ["command-line-utilities", "games"]
+
+[dependencies]
+ratatui = "0.30"
+
+[profile.release]
+lto = true
+codegen-units = 1
