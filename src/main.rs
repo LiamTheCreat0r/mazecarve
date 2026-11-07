@@ -1,3 +1,4 @@
+mod algos;
 mod maze;
 mod rng;
 
