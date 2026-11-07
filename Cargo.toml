@@ -10,6 +10,7 @@ categories = ["command-line-utilities", "games"]
 
 [dependencies]
 ratatui = "0.30"
+signal-hook = "0.3"
 
 [profile.release]
 lto = true
