@@ -154,7 +154,7 @@ timing
 
 appearance
   -T, --type=TYPE         maze algorithm (default backtracker)
-      --style=STYLE       texture, ascii, unicode or block (default texture)
+      --style=STYLE       dots, texture, ascii, unicode or block (default dots)
       --theme=THEME       default, forest, ocean, amber or mono
   -c, --colors=LIST       comma list: wall,path,head,trail1,trail2,unvisited,endpoint
   -W, --wall-width=INT    wall thickness in characters (default 1)
@@ -713,7 +713,7 @@ impl Options {
             Opt::Style => {
                 if theme::parse_style(arg).is_none() {
                     return Err(format!(
-                        "unknown style: {arg} (try texture, ascii, unicode, block)"
+                        "unknown style: {arg} (try dots, texture, ascii, unicode, block)"
                     ));
                 }
                 self.style_arg = Some(arg.to_string());

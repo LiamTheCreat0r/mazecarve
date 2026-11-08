@@ -245,6 +245,7 @@ pub fn palette(theme: &str, colors: Option<&str>) -> Palette {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Style {
     Auto,
+    Dots,
     Texture,
     Ascii,
     Unicode,
@@ -273,6 +274,7 @@ pub fn parse_style(name: &str) -> Option<Style> {
     }
     match normalize(name).as_str() {
         "auto" => Some(Style::Auto),
+        "dots" | "dot" => Some(Style::Dots),
         "texture" => Some(Style::Texture),
         "ascii" => Some(Style::Ascii),
         "unicode" | "utf8" => Some(Style::Unicode),

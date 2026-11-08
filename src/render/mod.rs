@@ -166,7 +166,7 @@ pub fn message_box_geom(o: &Options, tr: i32, tc: i32) -> Option<(i32, i32, i32,
 
 /// Box drawing characters: (horiz, vert, tl, tr, bl, br).
 pub fn msg_chars(style: Style) -> (char, char, char, char, char, char) {
-    if matches!(style, Style::Ascii | Style::Texture) {
+    if matches!(style, Style::Dots | Style::Ascii | Style::Texture) {
         ('-', '|', '+', '+', '+', '+')
     } else {
         ('─', '│', '┌', '┐', '└', '┘')

@@ -148,11 +148,11 @@ fn main() -> ExitCode {
     }
     let utf8 = theme::locale_is_utf8();
     if o.style == Style::Auto {
-        o.style = Style::Texture;
+        o.style = Style::Dots;
     }
     if !utf8 && matches!(o.style, Style::Unicode | Style::Block) {
-        eprintln!("mazecarve: no UTF-8 locale, falling back to texture walls");
-        o.style = Style::Texture;
+        eprintln!("mazecarve: no UTF-8 locale, falling back to dot walls");
+        o.style = Style::Dots;
     }
 
     o.view_mode = theme::parse_view(&o.view).unwrap_or(View::Top);

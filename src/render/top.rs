@@ -1,4 +1,4 @@
-//! The top-down view: walls as strokes, ASCII texture or solid blocks.
+//! The top-down view: walls as dots, strokes, ASCII texture or solid blocks.
 
 use crate::canvas::Canvas;
 use crate::maze::{DIR_E, DIR_N, DIR_S, DIR_W, Maze, Role, wall_bit};
@@ -74,6 +74,9 @@ fn tex_char(r: &Render, bits: u32, x: i32, y: i32) -> char {
 }
 
 fn wall_char(cv: &Canvas, r: &Render, x: i32, y: i32) -> char {
+    if r.style == Style::Dots {
+        return '.';
+    }
     if r.style == Style::Block {
         return '█';
     }
@@ -103,10 +106,10 @@ fn wall_char(cv: &Canvas, r: &Render, x: i32, y: i32) -> char {
 pub fn build(cv: &mut Canvas, m: &Maze, r: &Render) {
     let ww = r.wall_width;
     let cc = r.corridor;
-    let fill = if matches!(r.style, Style::Ascii | Style::Texture) {
-        '#'
-    } else {
-        '█'
+    let fill = match r.style {
+        Style::Dots => '.',
+        Style::Ascii | Style::Texture => '#',
+        _ => '█',
     };
     cv.ch.fill(fill);
     cv.role.fill(Role::Wall);
@@ -150,6 +153,37 @@ pub fn build(cv: &mut Canvas, m: &Maze, r: &Render) {
                     cv.ch[i] = wall_char(cv, r, x, y);
                 }
             }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::maze::Maze;
+    use crate::options::Options;
+    use crate::render::print_text;
+    use crate::rng::Rng;
+    use crate::theme::Style;
+
+    /// The dots style draws every wall, thin or thick, as '.'.
+    #[test]
+    fn dots_style_draws_only_dots() {
+        for ww in [1, 3] {
+            let mut o = Options::default();
+            o.style = Style::Dots;
+            o.wall_width = ww;
+            let mut m = Maze::new(6, 9);
+            let mut rng = Rng::new(3);
+            let mut algo = (crate::algos::find("prim").unwrap().create)(&mut m, &mut rng, "mix");
+            while !algo.step(&mut m, &mut rng) {}
+            m.set_head(-1, -1);
+            m.tick += 100;
+            let text = print_text(&m, &o);
+            assert!(text.contains('.'));
+            assert!(
+                text.chars().all(|c| matches!(c, '.' | ' ' | '\n')),
+                "{text}"
+            );
         }
     }
 }

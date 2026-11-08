@@ -2,8 +2,8 @@
 
 A terminal maze generator in Rust + [ratatui](https://ratatui.rs), meant to be
 watched rather than played. Carve a maze one cell at a time, in color, at
-whatever speed you like — or print one to a file. Walls default to a seeded
-ASCII texture, and the same maze can be drawn top-down, isometric, or oblique:
+whatever speed you like — or print one to a file. Walls default to tiny
+dots, and the same maze can be drawn top-down, isometric, or oblique:
 
 ```
                      __
@@ -37,10 +37,9 @@ ASCII texture, and the same maze can be drawn top-down, isometric, or oblique:
 - **11 maze algorithms**, plus `random` to pick one per maze
 - **Three views** — top-down (default), isometric (`-V iso`) and oblique
   (`-V oblique`); the same seed draws the same maze in every view
-- **Textured walls (default)** — walls composed of seeded ASCII symbols,
-  grouped by stroke direction, so the maze reads clearly but looks hand-typed
-- **Three more wall styles** — plain ASCII, Unicode box-drawing, or solid blocks
-  (`--style=ascii|unicode|block`)
+- **Dotted walls (default)** — walls drawn as tiny `.` dots, light and airy
+- **Four more wall styles** — a seeded ASCII texture, plain ASCII, Unicode
+  box-drawing, or solid blocks (`--style=texture|ascii|unicode|block`)
 - **Live mode** — watch the maze carve itself, cell by cell
 - **Infinite / screensaver mode** — endless mazes, the screensaver quits on any key
 - **Themes and custom colors** — `default`, `forest`, `ocean`, `amber`, `mono`, or your own palette
@@ -83,7 +82,7 @@ timing
 
 appearance
   -T, --type=TYPE         maze algorithm (default backtracker)
-      --style=STYLE       texture, ascii, unicode or block (default texture)
+      --style=STYLE       dots, texture, ascii, unicode or block (default dots)
       --theme=THEME       default, forest, ocean, amber or mono
   -c, --colors=LIST       comma list: wall,path,head,trail1,trail2,unvisited,endpoint
   -W, --wall-width=INT    wall thickness in characters (default 1)
@@ -155,17 +154,19 @@ mazecarve -p -V iso -R 1 -s 42        # same maze as above, rotated, printed
 
 | Style | Look |
 | --- | --- |
-| `texture` (default) | random ASCII symbols per wall cell, chosen from a hash of position + seed; horizontal runs use `-=~_:.`, vertical runs use `|!:'`, corners and tees use `+#*x@%`, crossings use `+#x*` |
+| `dots` (default) | every wall cell is a tiny `.` dot |
+| `texture` | random ASCII symbols per wall cell, chosen from a hash of position + seed; horizontal runs use `-=~_:.`, vertical runs use `|!:'`, corners and tees use `+#*x@%`, crossings use `+#x*` |
 | `ascii` | plain `\|`, `-`, `+` |
 | `unicode` | box-drawing strokes `─│┌┐└┘├┤┬┴┼` |
 | `block` | solid `█` walls |
 
 ```sh
 mazecarve -p --style=unicode    # the classic box-drawing maze
+mazecarve -l --style=texture    # seeded hand-typed ASCII texture
 mazecarve -l --style=block      # chunky block walls
 ```
 
-The texture is deterministic: the same `--seed` always produces the same
+The `texture` style is deterministic: the same `--seed` always produces the same
 glyphs, and each maze in infinite mode gets its own texture.
 
 ## Views
@@ -217,7 +218,8 @@ color depth comes from `TERM` and `COLORTERM`, and `NO_COLOR` turns colors off.
 
 `-f` writes the current seed and settings as `key=value` lines; `-L` reads them
 back (flags given on the command line still win). Files saved by the old C
-`cmaze` load unchanged:
+`cmaze` load fine; ones saved with `style=auto` now draw dotted walls instead
+of the texture:
 
 ```
 mazecarve 2.0.0 seed and settings
@@ -242,7 +244,7 @@ src/maze.rs           grid + wall bookkeeping, braiding, endpoints
 src/algos/            the 11 algorithms, one file each, plus the registry
 src/canvas.rs         off-screen character/role buffer
 src/tiles.rs          maze -> tile grid expansion, rotation math
-src/render/top.rs     top-down view: strokes, texture, blocks
+src/render/top.rs     top-down view: dots, strokes, texture, blocks
 src/render/iso.rs     isometric + oblique renderers (projection, faces)
 src/render/mod.rs     shared render state, message box, printed output
 src/layout.rs         sizing and centring on the terminal
@@ -254,7 +256,8 @@ src/rng.rs            splitmix64 PRNG, identical on every platform
 
 mazecarve started life as `cmaze`, written in C + ncurses. The Rust version
 is a step-for-step port: for the same seed and flags it prints byte-for-byte
-the same maze as `cmaze` 1.1.0 did.
+the same maze as `cmaze` 1.1.0 did (the default wall style is now `dots`; pass
+`--style=texture` to get cmaze's default look).
 
 ## See also
 
