@@ -74,20 +74,18 @@ fn tex_char(r: &Render, bits: u32, x: i32, y: i32) -> char {
 }
 
 fn wall_char(cv: &Canvas, r: &Render, x: i32, y: i32) -> char {
-    match r.style {
-        Style::Dots => return '⣿',
-        Style::AsciiDots => return '.',
-        _ => {}
+    if r.style == Style::AsciiDots {
+        return '.';
     }
     if r.style == Style::Block {
         return '█';
     }
     // Walls thicker than one character read better as a solid mass.
     if r.wall_width > 1 {
-        return if matches!(r.style, Style::Ascii | Style::Texture) {
-            '#'
-        } else {
-            '█'
+        return match r.style {
+            Style::Dots => '⣿',
+            Style::Ascii | Style::Texture => '#',
+            _ => '█',
         };
     }
     let bits = cv_wall(cv, x, y - 1) as u32
@@ -95,6 +93,7 @@ fn wall_char(cv: &Canvas, r: &Render, x: i32, y: i32) -> char {
         | (cv_wall(cv, x, y + 1) as u32) << 2
         | (cv_wall(cv, x - 1, y) as u32) << 3;
     match r.style {
+        Style::Dots => dots_char(bits),
         Style::Texture => tex_char(r, bits, x, y),
         Style::Ascii => match bits {
             1 | 4 | 5 => '|',
@@ -103,6 +102,31 @@ fn wall_char(cv: &Canvas, r: &Render, x: i32, y: i32) -> char {
         },
         _ => BOX_LINE[bits as usize],
     }
+}
+
+/// A braille cell for a wall, given which neighbours are walls too
+/// (1 = N, 2 = E, 4 = S, 8 = W).  Runs and junctions are a full cell;
+/// where a wall ends, the corner dots on its open side are dropped so
+/// the tip looks carved in rather than cut off square.
+///
+/// Braille dots are numbered (bit values in hex):
+///
+/// ```text
+///     1 4      01 08
+///     2 5      02 10
+///     3 6      04 20
+///     7 8      40 80
+/// ```
+fn dots_char(bits: u32) -> char {
+    let dots = match bits {
+        8 => 0x77, // runs west, ends to the east:  ⡷
+        2 => 0xBE, // runs east, ends to the west:  ⢾
+        1 => 0x3F, // runs north, ends below:       ⠿
+        4 => 0xF6, // runs south, ends above:       ⣶
+        0 => 0x36, // a lone pillar, all corners off: ⠶
+        _ => 0xFF, // runs and junctions:           ⣿
+    };
+    char::from_u32(0x2800 + dots).unwrap_or('⣿')
 }
 
 pub fn build(cv: &mut Canvas, m: &Maze, r: &Render) {
@@ -183,8 +207,12 @@ mod tests {
             m.tick += 100;
             let text = print_text(&m, &o);
             assert!(text.contains('⣿'));
+            // Thin walls round off their tips; thick walls stay solid.
+            let tips = text.chars().any(|c| matches!(c, '\u{2800}'..='\u{28FE}'));
+            assert_eq!(tips, ww == 1, "{text}");
             assert!(
-                text.chars().all(|c| matches!(c, '⣿' | ' ' | '\n')),
+                text.chars()
+                    .all(|c| matches!(c, '\u{2800}'..='\u{28FF}' | ' ' | '\n')),
                 "{text}"
             );
         }
