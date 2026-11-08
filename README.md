@@ -3,7 +3,7 @@
 A terminal maze generator in Rust + [ratatui](https://ratatui.rs), meant to be
 watched rather than played. Carve a maze one cell at a time, in color, at
 whatever speed you like — or print one to a file. Walls default to tiny
-dots, and the same maze can be drawn top-down, isometric, or oblique:
+braille dots, and the same maze can be drawn top-down, isometric, or oblique:
 
 ```
                      __
@@ -37,7 +37,8 @@ dots, and the same maze can be drawn top-down, isometric, or oblique:
 - **11 maze algorithms**, plus `random` to pick one per maze
 - **Three views** — top-down (default), isometric (`-V iso`) and oblique
   (`-V oblique`); the same seed draws the same maze in every view
-- **Dotted walls (default)** — walls drawn as tiny `.` dots, light and airy
+- **Dotted walls (default)** — walls drawn in braille (`⣿`), a dense field of
+  tiny dots; plain `.` dots on terminals without UTF-8
 - **Four more wall styles** — a seeded ASCII texture, plain ASCII, Unicode
   box-drawing, or solid blocks (`--style=texture|ascii|unicode|block`)
 - **Live mode** — watch the maze carve itself, cell by cell
@@ -154,7 +155,7 @@ mazecarve -p -V iso -R 1 -s 42        # same maze as above, rotated, printed
 
 | Style | Look |
 | --- | --- |
-| `dots` (default) | every wall cell is a tiny `.` dot |
+| `dots` (default) | every wall cell is a full braille cell `⣿`: eight tiny, tightly packed dots (plain `.` without UTF-8) |
 | `texture` | random ASCII symbols per wall cell, chosen from a hash of position + seed; horizontal runs use `-=~_:.`, vertical runs use `|!:'`, corners and tees use `+#*x@%`, crossings use `+#x*` |
 | `ascii` | plain `\|`, `-`, `+` |
 | `unicode` | box-drawing strokes `─│┌┐└┘├┤┬┴┼` |

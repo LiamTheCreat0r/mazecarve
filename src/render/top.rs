@@ -74,8 +74,10 @@ fn tex_char(r: &Render, bits: u32, x: i32, y: i32) -> char {
 }
 
 fn wall_char(cv: &Canvas, r: &Render, x: i32, y: i32) -> char {
-    if r.style == Style::Dots {
-        return '.';
+    match r.style {
+        Style::Dots => return '⣿',
+        Style::AsciiDots => return '.',
+        _ => {}
     }
     if r.style == Style::Block {
         return '█';
@@ -107,7 +109,8 @@ pub fn build(cv: &mut Canvas, m: &Maze, r: &Render) {
     let ww = r.wall_width;
     let cc = r.corridor;
     let fill = match r.style {
-        Style::Dots => '.',
+        Style::Dots => '⣿',
+        Style::AsciiDots => '.',
         Style::Ascii | Style::Texture => '#',
         _ => '█',
     };
@@ -165,7 +168,7 @@ mod tests {
     use crate::rng::Rng;
     use crate::theme::Style;
 
-    /// The dots style draws every wall, thin or thick, as '.'.
+    /// The dots style draws every wall, thin or thick, as a full braille cell.
     #[test]
     fn dots_style_draws_only_dots() {
         for ww in [1, 3] {
@@ -179,9 +182,9 @@ mod tests {
             m.set_head(-1, -1);
             m.tick += 100;
             let text = print_text(&m, &o);
-            assert!(text.contains('.'));
+            assert!(text.contains('⣿'));
             assert!(
-                text.chars().all(|c| matches!(c, '.' | ' ' | '\n')),
+                text.chars().all(|c| matches!(c, '⣿' | ' ' | '\n')),
                 "{text}"
             );
         }

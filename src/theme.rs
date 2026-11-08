@@ -245,7 +245,10 @@ pub fn palette(theme: &str, colors: Option<&str>) -> Palette {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Style {
     Auto,
+    /// Braille dots, eight tiny dots per cell.
     Dots,
+    /// Plain '.' dots: the fallback for `Dots` without UTF-8.
+    AsciiDots,
     Texture,
     Ascii,
     Unicode,

@@ -150,9 +150,9 @@ fn main() -> ExitCode {
     if o.style == Style::Auto {
         o.style = Style::Dots;
     }
-    if !utf8 && matches!(o.style, Style::Unicode | Style::Block) {
-        eprintln!("mazecarve: no UTF-8 locale, falling back to dot walls");
-        o.style = Style::Dots;
+    if !utf8 && matches!(o.style, Style::Dots | Style::Unicode | Style::Block) {
+        eprintln!("mazecarve: no UTF-8 locale, falling back to ascii dot walls");
+        o.style = Style::AsciiDots;
     }
 
     o.view_mode = theme::parse_view(&o.view).unwrap_or(View::Top);
